@@ -2,33 +2,30 @@ package main
 
 import (
 	"fmt"
-
-	"github.com/Oscar-inc117/sales-service/api/handlers"
 	"github.com/Oscar-inc117/sales-service/internal/config"
 	"github.com/Oscar-inc117/sales-service/internal/database"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/Oscar-inc117/sales-service/internal/handlers"
+	"github.com/Oscar-inc117/sales-service/internal/repository/postgres"
+	"github.com/Oscar-inc117/sales-service/internal/services/clientsrv"
+	"github.com/Oscar-inc117/sales-service/internal/services/usersrv"
 )
 
 func main() {
 	appConfig := config.Load()
 	port := appConfig.Server.Port
 
-	client := &handlers.Client{
+	clientRepo := postgres.ClientStorage{
 		DB: database.GetConnection(&appConfig.Database),
 	}
+	clientService := clientsrv.NewService(&clientRepo)
 
-	e := echo.New()
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"*"},
-		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
-	}))
+	userRepo := postgres.UserRepo{
+		DB: database.GetConnection(&appConfig.Database),
+	}
+	userService := usersrv.NewService(&userRepo)
 
-	e.POST("/api/clients", client.CreateClient)
-	e.GET("/api/clients", client.GetClients)
-	e.GET("/api/clients/:id", client.GetClient)
-	e.PUT("/api/clients/:id", client.UpdateClient)
-	e.DELETE("/api/clients/:id", client.DeleteClient)
+	e := handlers.Handler(clientService, userService)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", port)))
 }
+
