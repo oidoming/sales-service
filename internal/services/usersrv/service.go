@@ -2,6 +2,7 @@ package usersrv
 
 import (
 	"github.com/Oscar-inc117/sales-service/internal/domain"
+	"github.com/Oscar-inc117/sales-service/internal/services"
 	"github.com/google/uuid"
 )
 
@@ -29,7 +30,15 @@ func NewService(r Repository) Service {
 
 func (s *service) CreateUser(user *domain.User) error {
 	user.ID = uuid.New()
-	err := s.repository.InsertUser(user)
+
+	hash, err := services.HashPassword(user.Password)
+	if err != nil {
+		return err
+	}
+
+	user.Password = hash
+
+	err = s.repository.InsertUser(user)
 	if err != nil {
 		return err
 	}
@@ -47,7 +56,31 @@ func (s *service) GetUser(id uuid.UUID) (domain.User, error) {
 }
 
 func (s *service) UpdateUser(id uuid.UUID, user domain.User) error {
-	err := s.repository.UpdateUser(id, user)
+	u, err := s.GetUser(id)
+	if err != nil {
+		return err
+	}
+
+	if user.Name == "" {
+		user.Name = u.Name
+	}
+
+	if user.Email == "" {
+		user.Email = u.Email
+	}
+
+	if user.Password != "" {
+		hash, err := services.HashPassword(user.Password)
+		if err != nil {
+			return err
+		}
+
+		user.Password = hash
+	} else {
+		user.Password = u.Password
+	}
+
+	err = s.repository.UpdateUser(id, user)
 	if err != nil {
 		return err
 	}

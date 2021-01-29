@@ -32,3 +32,11 @@ func (u *UserRepo) UpdateUser(id uuid.UUID, user domain.User) error {
 
 	return err
 }
+
+func (u *UserRepo) SelectUserByEmail(email string) (domain.User, error) {
+	var user domain.User
+
+	err := u.DB.Model(&user).Where("email=?", email).Select()
+
+	return user, err
+}
