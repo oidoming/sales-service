@@ -39,7 +39,14 @@ func Handler(clientSrv clientsrv.Service, userSrv usersrv.Service, authSrv auths
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
-		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		AllowHeaders: []string{
+			echo.HeaderOrigin,
+			echo.HeaderContentType,
+			echo.HeaderAccept,
+			echo.HeaderAuthorization,
+			echo.HeaderAccessControlAllowHeaders,
+			echo.HeaderSetCookie,
+			"*"},
 	}))
 
 	return e

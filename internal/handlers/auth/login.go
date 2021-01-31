@@ -39,6 +39,11 @@ func (a *AuthHandler) Login(c echo.Context) error {
 		},
 	}
 
+	err := writeCookie(c, accessToken)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "cannot create cookie")
+	}
+
 	return c.JSON(http.StatusCreated, resp)
 }
 
@@ -79,4 +84,14 @@ func (a *AuthHandler) ValidateJWT(c echo.Context) error {
 
 type erToken struct {
 	ErrorToken string `json:"error"`
+}
+
+func writeCookie(c echo.Context, accessToken string) error {
+	cookie := new(http.Cookie)
+	cookie.Name = "access_token"
+	cookie.Value = accessToken
+	cookie.HttpOnly = true
+	c.SetCookie(cookie)
+	//log.Println("write cookie", cookie.Value)
+	return nil
 }

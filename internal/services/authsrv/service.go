@@ -79,7 +79,7 @@ func (a *authService) GenerateRefreshJWT(user domain.User) string {
 
 func (a *authService) ValidateJWT(tokenString string) error {
 	claims := jwt.MapClaims{}
-
+	//log.Println(tokenString)
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
@@ -87,7 +87,7 @@ func (a *authService) ValidateJWT(tokenString string) error {
 		return []byte(secretKeyJWT), nil
 	})
 	if err != nil {
-		log.Println("validate", err)
+		log.Println("validate", err, token)
 		return err
 	}
 

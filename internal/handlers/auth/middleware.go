@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"log"
 	"net/http"
@@ -9,10 +10,18 @@ import (
 
 func (a *AuthHandler) MiddlewareValidateAccessJWT(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		accessToken, _ := extractToken(c)
-
-		err := a.AuthService.ValidateJWT(accessToken)
+		cookie, err := c.Cookie("access_token")
 		if err != nil {
+			log.Println(err)
+		}
+
+		//accessToken, _ := extractToken(c)
+		log.Println("jajaja ", cookie.Value)
+
+		err = a.AuthService.ValidateJWT(cookie.Value)
+		if err != nil {
+			cookie.Value = ""
+			cookie.MaxAge = -1
 			return c.JSON(http.StatusUnauthorized, &erToken{ErrorToken: err.Error()})
 		}
 
@@ -40,8 +49,14 @@ func (a *AuthHandler) MiddlewareValidateRefreshJWT(next echo.HandlerFunc) echo.H
 }
 
 func extractToken(c echo.Context) (accessJWT, refreshJWT string){
-	accessJWT = c.Request().Header.Get("x-access-token")
+	cookie, err := c.Cookie("access_token")
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Println(cookie.Name)
+	fmt.Println(cookie.Value)
+	//accessJWT = c.Request().Header.Get("Authorization")//("x-access-token")
 	refreshJWT = c.Request().Header.Get("x-refresh-token")
-
-	return accessJWT, refreshJWT
+	//log.Println(accessJWT)
+	return cookie.Value, refreshJWT
 }
