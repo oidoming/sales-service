@@ -8,6 +8,8 @@ import (
 	"github.com/Oscar-inc117/sales-service/internal/repository/postgres"
 	"github.com/Oscar-inc117/sales-service/internal/services/authsrv"
 	"github.com/Oscar-inc117/sales-service/internal/services/clientsrv"
+	"github.com/Oscar-inc117/sales-service/internal/services/productsrv"
+	"github.com/Oscar-inc117/sales-service/internal/services/salessrv"
 	"github.com/Oscar-inc117/sales-service/internal/services/usersrv"
 )
 
@@ -15,18 +17,15 @@ func main() {
 	appConfig := config.Load()
 	port := appConfig.Server.Port
 
-	clientRepo := postgres.ClientStorage{
-		DB: database.GetConnection(&appConfig.Database),
-	}
-	clientService := clientsrv.NewService(&clientRepo)
+	repo := postgres.NewRepository(database.GetConnection(&appConfig.Database))
 
-	userRepo := postgres.UserRepo{
-		DB: database.GetConnection(&appConfig.Database),
-	}
-	userService := usersrv.NewService(&userRepo)
-	authService := authsrv.NewService(&userRepo)
+	userService := usersrv.NewService(&repo)
+	authService := authsrv.NewService(&repo)
+	salesService := salessrv.NewService(&repo)
+	clientService := clientsrv.NewService(&repo)
+	productService := productsrv.NewService(&repo)
 
-	e := handlers.Handler(clientService, userService, authService)
+	e := handlers.Handler(clientService, userService, authService, salesService, productService)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", port)))
 }

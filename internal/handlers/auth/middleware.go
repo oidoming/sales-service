@@ -15,9 +15,6 @@ func (a *AuthHandler) MiddlewareValidateAccessJWT(next echo.HandlerFunc) echo.Ha
 			log.Println(err)
 		}
 
-		//accessToken, _ := extractToken(c)
-		log.Println("jajaja ", cookie.Value)
-
 		err = a.AuthService.ValidateJWT(cookie.Value)
 		if err != nil {
 			cookie.Value = ""
@@ -55,8 +52,8 @@ func extractToken(c echo.Context) (accessJWT, refreshJWT string){
 	}
 	fmt.Println(cookie.Name)
 	fmt.Println(cookie.Value)
-	//accessJWT = c.Request().Header.Get("Authorization")//("x-access-token")
+
 	refreshJWT = c.Request().Header.Get("x-refresh-token")
-	//log.Println(accessJWT)
+
 	return cookie.Value, refreshJWT
 }

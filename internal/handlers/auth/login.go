@@ -3,7 +3,6 @@ package auth
 import (
 	"errors"
 	"github.com/Oscar-inc117/sales-service/internal/domain"
-	"github.com/Oscar-inc117/sales-service/internal/handlers/response"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -13,13 +12,13 @@ func (a *AuthHandler) Login(c echo.Context) error {
 	user := domain.User{}
 
 	if err := c.Bind(&user); err != nil {
-		message := response.CreateErrorResponse(http.StatusBadRequest, err)
+		message := domain.CreateErrorResponse(http.StatusBadRequest, err)
 		return c.JSON(http.StatusBadRequest, message)
 	}
 
 	user, ok := a.AuthService.Auth(user.Email, user.Password)
 	if !ok {
-		message := response.CreateErrorResponse(http.StatusUnauthorized, errors.New("incorrect email or password"))
+		message := domain.CreateErrorResponse(http.StatusUnauthorized, errors.New("incorrect email or password"))
 		return c.JSON(http.StatusUnauthorized, message)
 	}
 
@@ -27,7 +26,7 @@ func (a *AuthHandler) Login(c echo.Context) error {
 
 	refreshToken := a.AuthService.GenerateRefreshJWT(user)
 
-	resp := response.Message{
+	resp := domain.Message{
 		Success: true,
 		Payload: map[string]interface{}{
 			"access_token": accessToken,
@@ -61,7 +60,7 @@ func (a *AuthHandler) RefreshToken(c echo.Context) error {
 
 	accessToken := a.AuthService.GenerateJWT(user)
 
-	m := response.Message{
+	m := domain.Message{
 		Success: true,
 		Payload: map[string]string{
 			"accessToken": accessToken,
@@ -92,6 +91,6 @@ func writeCookie(c echo.Context, accessToken string) error {
 	cookie.Value = accessToken
 	cookie.HttpOnly = true
 	c.SetCookie(cookie)
-	//log.Println("write cookie", cookie.Value)
+
 	return nil
 }
