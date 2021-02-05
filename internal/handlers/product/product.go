@@ -1,91 +1,90 @@
-package client
+package product
 
 import (
 	"github.com/Oscar-inc117/sales-service/internal/domain"
-	"github.com/Oscar-inc117/sales-service/internal/services/clientsrv"
-	"github.com/google/uuid"
+	"github.com/Oscar-inc117/sales-service/internal/services/productsrv"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
 
-type ClientHandler struct {
-	ClientService clientsrv.Service
+type ProductHandler struct {
+	ProductService productsrv.Service
 }
 
-func NewClientHandler(client clientsrv.Service) *ClientHandler {
-	return &ClientHandler{ClientService: client}
+func NewProductHandler(product productsrv.Service) *ProductHandler {
+	return &ProductHandler{
+		ProductService: product,
+	}
 }
 
-func (ch *ClientHandler) CreateClient(c echo.Context) error {
-	client := domain.Client{}
+func (p *ProductHandler) AddProduct(c echo.Context) error {
+	product := new(domain.Product)
 
-	if err := c.Bind(&client); err != nil {
+	if err := c.Bind(product); err != nil {
 		message := domain.CreateErrorResponse(http.StatusBadRequest, err)
 		return c.JSON(http.StatusBadRequest, message)
 	}
 
-	err := ch.ClientService.CreateClient(&client)
-	if err != nil {
+	if err := p.ProductService.AddProduct(product); err != nil {
 		message := domain.CreateErrorResponse(http.StatusInternalServerError, err)
 		return c.JSON(http.StatusInternalServerError, message)
 	}
 
-	domain.MessageOK.Payload = client
+	domain.MessageOK.Payload = product
 
 	return c.JSON(http.StatusCreated, domain.MessageOK)
 }
 
-func (ch *ClientHandler) GetClients(c echo.Context) error {
-	clients, err := ch.ClientService.GetClients()
+func (p *ProductHandler) GetProduct(c echo.Context) error {
+	id := c.Param("id")
+
+	product, err := p.ProductService.GetProduct(id)
 	if err != nil {
 		message := domain.CreateErrorResponse(http.StatusInternalServerError, err)
 		return c.JSON(http.StatusInternalServerError, message)
 	}
 
-	domain.MessageOK.Payload = clients
+	domain.MessageOK.Payload = product
 
 	return c.JSON(http.StatusOK, domain.MessageOK)
 }
 
-func (ch *ClientHandler) GetClient(c echo.Context) error {
-	id, _ := uuid.Parse(c.Param("id"))
-
-	client, err := ch.ClientService.GetClient(id)
+func (p *ProductHandler) GetProducts(c echo.Context) error {
+	products, err := p.ProductService.GetProducts()
 	if err != nil {
 		message := domain.CreateErrorResponse(http.StatusInternalServerError, err)
 		return c.JSON(http.StatusInternalServerError, message)
 	}
 
-	domain.MessageOK.Payload = client
+	domain.MessageOK.Payload = products
 
 	return c.JSON(http.StatusOK, domain.MessageOK)
 }
 
-func (ch *ClientHandler) UpdateClient(c echo.Context) error {
-	client := domain.Client{}
-	if err := c.Bind(&client); err != nil {
+func (p *ProductHandler) UpdateProduct(c echo.Context) error {
+	id := c.Param("id")
+
+	product := domain.Product{}
+
+	if err := c.Bind(&product); err != nil {
 		message := domain.CreateErrorResponse(http.StatusBadRequest, err)
 		return c.JSON(http.StatusBadRequest, message)
 	}
 
-	id, _ := uuid.Parse(c.Param("id"))
-
-	err := ch.ClientService.UpdateClient(id, client)
-	if err != nil {
+	if err := p.ProductService.UpdateProduct(id, product);err != nil {
 		message := domain.CreateErrorResponse(http.StatusInternalServerError, err)
 		return c.JSON(http.StatusInternalServerError, message)
 	}
 
-	domain.MessageOK.Payload = client
+	domain.MessageOK.Payload = product
 
 	return c.JSON(http.StatusOK, domain.MessageOK)
 }
 
-func (ch *ClientHandler) DeleteClient(c echo.Context) error {
-	id, _ := uuid.Parse(c.Param("id"))
+func (p *ProductHandler) DeleteProduct(c echo.Context) error {
+	id := c.Param("id")
 
-	err := ch.ClientService.DeleteClient(id)
-	if err != nil {
+	if err := p.ProductService.RemoveProduct(id); err != nil {
 		message := domain.CreateErrorResponse(http.StatusInternalServerError, err)
 		return c.JSON(http.StatusInternalServerError, message)
 	}

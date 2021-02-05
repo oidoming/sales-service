@@ -1,4 +1,4 @@
-package response
+package domain
 
 type Message struct {
 	Success bool          `json:"success"`
